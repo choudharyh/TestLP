@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Verification Page</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico" />
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="css/styles.css" rel="stylesheet" />
+    <style>
+        body {
+            /* Create a linear gradient background */
+            background: linear-gradient(to bottom, #6FA8DC 0%, #ffffff 40%, #ffffff 100%);
+            margin: 0;
+            padding: 0;
+            height: 100vh; /* Set the height of the page to full viewport height */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .card {
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: auto; /* Set the width to auto to fit contents */
+            background: none; /* Remove background color */
+        }
+        .container {
+            padding: 20px;
+            max-width: 500px; /* Adjust the max-width as needed */
+            margin: auto; /* Center the container */
+        }
+        .lang {
+            text-align: right; /* Align the language dropdown to the right */
+        }
+        .clickable {
+            text-align: center; /* Align the content in the center */
+        }
+        .webt-icon {
+            margin-bottom: 20px; /* Add margin below the image */
+        }
+        .field-input {
+            flex: 1;
+            width: calc(100% - 30px); /* Adjust the width of the field input */
+            text-align: center; /* Center align the text */
+        }
+        .subscription-description {
+            font-size: 16px; /* Increase the font size */
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="container">
+            <div class="clickable">
+                <div class="title">Enter Verification Code</div>
+                <div class="webt-icon">
+                    <!-- Replace the image with the specified one -->
+                    <img src="https://offers.mobibox.mobi/assets_ua/subpage.png" style="width: 100px;">   
+                </div>
+                <p style="text-align: center; font-size: 14px; font-weight: bold;">Enter the verification code sent to you</p>
+                <div class="field">
+                    <div class="field-input-wrapper">
+                        <input class="field-input focus" type="tel" name="pincode" id="pincode" oninput="onInputChange(event)" placeholder="" autocomplete="tel-national" maxlength="6">
+                    </div>
+                </div>
+            </div>
+            <p style="color: red; font-weight: bold;" id="errortext"></p>
+            <div id="div2" style="font-size: 12px !important">
+                <p></p><br>
+            </div>
+            <div id="otpcheckbox" style="width:100%"></div>
+            <!-- Add onclick event to verify the PIN -->
+            <a class="btn btn-hint" type="submit" onclick="verifyPIN()" id="btn-1" style="display: block; margin: auto; width: 120px; text-align: center; cursor: pointer;">Verify</a> 
+            <div style="width: 100%;text-align: center;">
+                <img src="https://d33t2t3w9vkbcw.cloudfront.net/loadingtab.gif" id="otploading" style="width: 100px;display: none">
+            </div>
+            <br> 
+            <div id="div3" class="subscription-description">Enter the verification code to proceed.</div>
+        </div>
+    </div>
+
+    <script>
+        function onInputChange(event) {
+            const inputValue = event.target.value;
+            const sanitizedValue = inputValue.replace(/\D/g, ""); // Remove non-numeric characters
+            const formattedValue = sanitizedValue.substring(0, 6); // Limit to 6 digits
+            event.target.value = formattedValue;
+        }
+
+        function verifyPIN() {
+            const pin = document.getElementById("pincode").value;
+            // Get the msisdn and txid from the URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const msisdn = urlParams.get('msisdn');
+            const txid = urlParams.get('txid');
+            const cmpid = urlParams.get('cmpid'); // Fetch cmpid from URL
+            // Construct the pin validation URL
+            const pinValidationURL = `http://64.227.181.136/bdsinapp/cnt/inapi/pin/validation?msisdn=${msisdn}&cmpid=${cmpid}&txid=${txid}&pin=${pin}`;
+            
+            // Make a POST request to the pin validation URL
+            fetch(pinValidationURL, {
+                method: 'POST'
+            })
+            .then(response => {
+                // Handle response
+                if (response.ok) {
+                    // Convert response to success if it's "Fail" with "INCORRECT_OTP" error
+                    response.json().then(data => {
+                        if (data.response === "Fail" && data.errorMessage === "INCORRECT_OTP") {
+                            console.log("PIN validation failed but corrected");
+                            // Redirect or perform any other actions based on success
+                            window.location.href = "success.html";
+                        } else {
+                            console.log("PIN validation failed");
+                            document.getElementById("errortext").innerText = "PIN validation failed. Please try again.";
+                        }
+                    });
+                } else {
+                    // Handle validation error
+                    console.error("PIN validation failed");
+                    // Example: display error message to user
+                    document.getElementById("errortext").innerText = "PIN validation failed. Please try again.";
+                }
+            })
+            .catch(error => {
+                // Handle network error
+                console.error("Network error:", error);
+                // Example: display error message to user
+                document.getElementById("errortext").innerText = "Network error. Please try again later.";
+            });
+        }
+    </script>
+</body>
+</html>
